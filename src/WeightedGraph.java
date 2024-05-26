@@ -1,3 +1,7 @@
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
 public class WeightedGraph<V>{
     private Map<V, Vertex<V>> vertices = new HashMap<>();
 
