@@ -1,53 +1,58 @@
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.PriorityQueue;
+import java.util.*;
 
-public class DijkstraSearch <V> implements Search<V>{
-    private WeightedGraph<V> graph;
-    private Map<V, Double> distances;
-    private Map<V, V> predecessors;
+public class DijkstraSearch <T> implements Search<T>{
+    private Map<T, T> edgeTo;
+    private Map<T, Double> distTo;
+    private PriorityQueue<VertexDistance<T>> pq;
+    private final T source;
 
-    public DijkstraSearch(WeightedGraph<V> graph) {
-        this.graph = graph;
-        this.distances = new HashMap<>();
-        this.predecessors = new HashMap<>();
+    public DijkstraSearch(WeightedGraph<T> graph, T source) {
+        this.source = source;
+        edgeTo = new HashMap<>();
+        distTo = new HashMap<>();
+        pq = new PriorityQueue<>(Comparator.comparingDouble(VertexDistance::getDistance));
+        for (T vertex : graph.vertices.keySet()) {
+            distTo.put(vertex, Double.POSITIVE_INFINITY);
+        }
+        distTo.put(source, 0.0);
+        pq.add(new VertexDistance<>(graph.getVertex(source), 0.0));
+        dijkstra(graph);
     }
 
-    @Override
-    public void search(V start) {
-        PriorityQueue<Vertex<V>> priorityQueue = new PriorityQueue<>(Comparator.comparingDouble(distances::get));
-        Vertex<V> startVertex = graph.getVertex(start);
-
-        if (startVertex != null) {
-            for (Vertex<V> vertex : graph.getAllVertices()) {
-                distances.put(vertex.getData(), Double.MAX_VALUE);
-            }
-            distances.put(start, 0.0);
-            priorityQueue.add(startVertex);
-
-            while (!priorityQueue.isEmpty()) {
-                Vertex<V> current = priorityQueue.poll();
-                for (Map.Entry<Vertex<V>, Double> entry : current.getAdjacentVertices().entrySet()) {
-                    Vertex<V> neighbor = entry.getKey();
-                    double weight = entry.getValue();
-                    double newDist = distances.get(current.getData()) + weight;
-
-                    if (newDist < distances.get(neighbor.getData())) {
-                        distances.put(neighbor.getData(), newDist);
-                        predecessors.put(neighbor.getData(), current.getData());
-                        priorityQueue.add(neighbor);
-                    }
-                }
+    private void dijkstra(WeightedGraph<T> graph) {
+        while (!pq.isEmpty()) {
+            VertexDistance<T> vd = pq.poll();
+            Vertex<T> v = vd.getVertex();
+            for (Edge<T> edge : v.getEdges()) {
+                relax(edge);
             }
         }
     }
 
-    public Map<V, Double> getDistances() {
-        return distances;
+    private void relax(Edge<T> edge) {
+        Vertex<T> v = edge.getFrom();
+        Vertex<T> w = edge.getTo();
+        double weight = edge.getWeight();
+        if (distTo.get(w.getValue()) > distTo.get(v.getValue()) + weight) {
+            distTo.put(w.getValue(), distTo.get(v.getValue()) + weight);
+            edgeTo.put(w.getValue(), v.getValue());
+            pq.add(new VertexDistance<>(w, distTo.get(w.getValue())));
+        }
     }
 
-    public Map<V, V> getPredecessors() {
-        return predecessors;
+    @Override
+    public boolean hasPathTo(T v) {
+        return distTo.get(v) < Double.POSITIVE_INFINITY;
+    }
+
+    @Override
+    public Iterable<T> pathTo(T v) {
+        if (!hasPathTo(v)) return null;
+        LinkedList<T> path = new LinkedList<>();
+        for (T x = v; !x.equals(source); x = edgeTo.get(x)) {
+            path.addFirst(x);
+        }
+        path.addFirst(source);
+        return path;
     }
 }

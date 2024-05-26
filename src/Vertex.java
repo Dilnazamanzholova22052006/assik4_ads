@@ -1,20 +1,29 @@
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public class Vertex<V>{
-    private V data;
-    private Map<Vertex<V>, Double> adjacentVertices; // with weights
 
-    public Vertex(V data) {
-        this.data = data;
-        this.adjacentVertices = new HashMap<>();
+    class Vertex<T> {
+        private T value;
+        private List<Edge<T>> edges;
+
+        public Vertex(T value) {
+            this.value = value;
+            this.edges = new ArrayList<>();
+        }
+
+        public T getValue() {
+            return value;
+        }
+
+        public List<Edge<T>> getEdges() {
+            return edges;
+        }
+
+        public void addEdge(Edge<T> edge) {
+            edges.add(edge);
+        }
     }
 
-    public void addAdjacentVertex(Vertex<V> destination, double weight) {
-        adjacentVertices.put(destination, weight);
-    }
 
-    // Getters and setters
-    public V getData() { return data; }
-    public Map<Vertex<V>, Double> getAdjacentVertices() { return adjacentVertices; }
-}

@@ -1,29 +1,25 @@
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class WeightedGraph<V>{
-    private Map<V, Vertex<V>> vertices = new HashMap<>();
+class WeightedGraph<T> {
+    Map<T, Vertex<T>> vertices;
+    private boolean directed;
 
-    public void addVertex(V data) {
-        vertices.putIfAbsent(data, new Vertex<>(data));
+    public WeightedGraph(boolean directed) {
+        this.vertices = new HashMap<>();
+        this.directed = directed;
     }
 
-    public void addEdge(V source, V dest, double weight) {
-        Vertex<V> sourceVertex = vertices.get(source);
-        Vertex<V> destVertex = vertices.get(dest);
-        if (sourceVertex != null && destVertex != null) {
-            sourceVertex.addAdjacentVertex(destVertex, weight);
-            // For undirected graph, add the reverse edge too
-            destVertex.addAdjacentVertex(sourceVertex, weight);
+    public void addEdge(T from, T to, double weight) {
+        Vertex<T> fromVertex = vertices.computeIfAbsent(from, Vertex::new);
+        Vertex<T> toVertex = vertices.computeIfAbsent(to, Vertex::new);
+        fromVertex.addEdge(new Edge<>(fromVertex, toVertex, weight));
+        if (!directed) {
+            toVertex.addEdge(new Edge<>(toVertex, fromVertex, weight));
         }
     }
 
-    public Vertex<V> getVertex(V data) {
-        return vertices.get(data);
-    }
-
-    public Collection<Vertex<V>> getAllVertices() {
-        return vertices.values();
+    public Vertex<T> getVertex(T value) {
+        return vertices.get(value);
     }
 }
